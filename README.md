@@ -1,0 +1,2 @@
+# mwminvesticniaplikace
+investice
