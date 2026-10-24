@@ -1,4 +1,6 @@
-import streamlit as st
+
+        
+           import streamlit as st
 import yfinance as yf
 import pandas as pd
 
@@ -6,7 +8,7 @@ import pandas as pd
 st.set_page_config(page_title="Kompletní Investiční Analytik", page_icon="📈", layout="wide")
 
 st.title("📊 Pokročilá Investiční Sledovačka & Analytika")
-st.write("Sleduj ceny, technické ukazatele, fundamenty i aktivitu velkých hráčů a insiderů z byznysu.")
+st.write("Sleduj ceny, fundamenty, transakce insiderů a komentáře o velkých investicích.")
 
 # Vstup pro uživatele - název firmy (Ticker)
 col_input, _ = st.columns([1, 2])
@@ -45,11 +47,12 @@ if ticker_symbol:
             st.markdown("---")
 
             # --- ZÁLOŽKY ---
-            tab1, tab2, tab3, tab4 = st.tabs([
+            tab1, tab2, tab3, tab4, tab5 = st.tabs([
                 "📈 Cenová historie", 
                 "🏢 Fundamentální analýza", 
                 "⚙️ Technické ukazatele", 
-                "🐋 Velcí investoři & Insiders"
+                "🐋 Velcí investoři & Insiders",
+                "📰 Důvody & Komentáře"
             ])
 
             # ZÁLOŽKA 1: Cenová historie
@@ -100,7 +103,7 @@ if ticker_symbol:
                     else:
                         st.write("**SMA 50:** Nedostatek dat")
 
-            # ZÁLOŽKA 4: Velcí investoři a Insiders (NOVÉ)
+            # ZÁLOŽKA 4: Velcí investoři a Insiders
             with tab4:
                 st.subheader("🐋 Sledování velkých hráčů, fondů a vedení (Insider Trading)")
                 
@@ -113,9 +116,6 @@ if ticker_symbol:
                 
                 st.markdown("---")
                 st.markdown("### 🏛️ Hlavní institucionální držitelé (Formuláře 13F)")
-                st.write("Tyto velké fondy drží největší podíly v této společnosti:")
-                
-                # Pokus o vytažení tabulky majoritních vlastníků z yfinance
                 try:
                     major_holders = company.major_holders
                     if major_holders is not None and not major_holders.empty:
@@ -125,9 +125,7 @@ if ticker_symbol:
                 except Exception:
                     st.info("Data o majoritních vlastnících se nepodařilo načíst.")
 
-                st.markdown("### 👔 Transakce insiderů (Formulář 4 – Nákupy/Prodeje vedení)")
-                st.write("Zde se sleduje, zda samotní ředitelé, CEO nebo členové správní rady akcie dokupují, nebo naopak odprodávají:")
-                
+                st.markdown("### 👔 Transakce insiderů (Formulář 4)")
                 try:
                     insider_transactions = company.insider_transactions
                     if insider_transactions is not None and not insider_transactions.empty:
@@ -136,6 +134,25 @@ if ticker_symbol:
                         st.info("Záznamy o transakcích insiderů pro toto období nejsou k dispozici.")
                 except Exception:
                     st.info("Tabulku transakcí insiderů se nepodařilo načíst.")
+
+            # ZÁLOŽKA 5: Důvody a komentáře médií/investorů (NOVÉ)
+            with tab5:
+                st.subheader("📰 Aktuální zprávy, analýzy a důvody nákupů/prodejů")
+                st.write("Zde se automaticky načítají nejnovější zprávy a tiskové zprávy trhu, které vysvětlují chování investorů a vývoj firmy:")
+                
+                try:
+                    news_list = company.news
+                    if news_list:
+                        for item in news_list:
+                            title = item.get('title', 'Bez názvu')
+                            publisher = item.get('publisher', 'Neznámý zdroj')
+                            link = item.get('link', '#')
+                            
+                            st.markdown(f"* **[{title}]({link})** — *{publisher}*")
+                    else:
+                        st.info("Žádné aktuální zprávy nebyly pro tento ticker nalezenы.")
+                except Exception as err:
+                    st.info(f"Nepodařilo se načíst zprávy: {err}")
 
     except Exception as e:
         st.error(f"Došlo k chybě při načítání dat: {e}")
